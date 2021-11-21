@@ -5,7 +5,7 @@
  * 1010 Lausanne, Switzerland
  * E-mail contact: contact@flowkit.com
  *
- * The most recent release of Palabos can be downloaded at 
+ * The most recent release of Palabos can be downloaded at
  * <http://www.palabos.org/>
  *
  * The library Palabos is free software: you can redistribute it and/or
@@ -171,7 +171,7 @@ int main(int argc, char **argv)
 {
     plbInit(&argc, &argv);
 
-    if (argc!=7) {
+    if (argc!=8) {
         pcout << "Error missing some input parameter\n";
         pcout << "The structure is :\n";
         pcout << "1. Input file name.\n";
@@ -180,16 +180,22 @@ int main(int argc, char **argv)
         pcout << "4. number of cells in Y direction.\n";
         pcout << "5. number of cells in Z direction.\n";
         pcout << "6. Delta P .\n";
-        pcout << "Example: " << argv[0] << " twoSpheres.dat tmp/ 48 64 64 0.00005\n";
+        pcout << "7. Output Perhitungan data dan file vtx .\n";
+        pcout << "   > Output Di akhir saja = 0.\n";
+        pcout << "   > Output Per n Iterasi > 0.\n";
+        pcout << "Example: " << argv[0] << " twoSpheres.dat tmp/ 48 64 64 0.00005 0\n";
         exit (EXIT_FAILURE);
     }
     std::string fNameIn  = argv[1];
     std::string fNameOut = argv[2];
 
-    const plint nx = atoi(argv[3]);
+    const plint nx = atoi (argv[3]);
     const plint ny = atoi(argv[4]);
     const plint nz = atoi(argv[5]);
     const T deltaP = atof(argv[6]);
+    //jika pilihan 1 = print tiap iterasi
+    //jika pilihan 2 = print hanya di akhir
+    const plint pilihan = atoi(argv[7]);
 
     global::directories().setOutputDir(fNameOut+"/");
 
@@ -224,31 +230,68 @@ int main(int argc, char **argv)
     pcout << "Simulation begins" << std::endl;
     plint iT=0;
 
+    if (pilihan>0){
+    //jika sama dengan >0 output vti dan perhitungan permeabilitas dilakukan setiap 5000 iterasi
     const plint maxT = 30000;
-    for (;iT<maxT; ++iT) {
-        if (iT % 20 == 0) {
-            pcout << "Iteration " << iT << std::endl;
-        }
-        if (iT % 500 == 0 && iT>0) {
-            writeGifs(lattice,iT);
-        }
+            for (;iT<maxT; ++iT) {
+                if (iT % 20 == 0) {
+                    pcout << "Iteration " << iT << std::endl;
+                }
+                if (iT % 500 == 0 && iT>0) {
+                    writeGifs(lattice,iT);
+                    pcout << "Permeability:" << std::endl << std::endl;
+                    computePermeability(lattice, nu, deltaP, lattice.getBoundingBox());
+                    pcout << std::endl;
 
-        lattice.collideAndStream();
-        converge.takeValue(getStoredAverageEnergy(lattice),true);
+                    pcout << "Writing VTK file ..." << std::endl << std::endl;
+                    writeVTK(lattice,iT);
 
-        if (converge.hasConverged()) {
-            break;
-        }
+                }
+
+                lattice.collideAndStream();
+                converge.takeValue(getStoredAverageEnergy(lattice),true);
+
+                if (converge.hasConverged()) {
+                    break;
+                }
+            }
+                pcout << "End of simulation at iteration " << iT << std::endl;
+
+                pcout << "Permeability:" << std::endl << std::endl;
+                computePermeability(lattice, nu, deltaP, lattice.getBoundingBox());
+                pcout << std::endl;
+
+                pcout << "Writing VTK file ..." << std::endl << std::endl;
+                writeVTK(lattice,iT);
     }
+    if (pilihan==0){
+    //jika sama dengan ==0 output vti dan perhitungan permeabilitas dilakukan diakhir iterasi
+    const plint maxT = 30000;
+            for (;iT<maxT; ++iT) {
+                if (iT % 20 == 0) {
+                    pcout << "Iteration " << iT << std::endl;
+                }
+                if (iT % 500 == 0 && iT>0) {
+                    writeGifs(lattice,iT);
 
-    pcout << "End of simulation at iteration " << iT << std::endl;
+                }
 
-    pcout << "Permeability:" << std::endl << std::endl;
-    computePermeability(lattice, nu, deltaP, lattice.getBoundingBox());
-    pcout << std::endl;
+                lattice.collideAndStream();
+                converge.takeValue(getStoredAverageEnergy(lattice),true);
 
-    pcout << "Writing VTK file ..." << std::endl << std::endl;
-    writeVTK(lattice,iT);
+                if (converge.hasConverged()) {
+                    break;
+                }
+            }
+                pcout << "End of simulation at iteration " << iT << std::endl;
+
+                pcout << "Permeability:" << std::endl << std::endl;
+                computePermeability(lattice, nu, deltaP, lattice.getBoundingBox());
+                pcout << std::endl;
+
+                pcout << "Writing VTK file ..." << std::endl << std::endl;
+                writeVTK(lattice,iT);
+    }
     pcout << "Finished!" << std::endl << std::endl;
 
     return 0;
