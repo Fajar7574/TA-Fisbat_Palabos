@@ -193,8 +193,8 @@ int main(int argc, char **argv)
     const plint ny = atoi(argv[4]);
     const plint nz = atoi(argv[5]);
     const T deltaP = atof(argv[6]);
-    //jika pilihan 1 = print tiap iterasi
-    //jika pilihan 2 = print hanya di akhir
+    //jika pilihan 0 = Prnt & Perhitungan Permeabilitas Diakhir Saja
+    //jika pilihan >0 (n) = Prnt & Perhitungan Permeabilitas per n iterasi
     const plint pilihan = atoi(argv[7]);
 
     global::directories().setOutputDir(fNameOut+"/");
@@ -237,7 +237,7 @@ int main(int argc, char **argv)
                 if (iT % 20 == 0) {
                     pcout << "Iteration " << iT << std::endl;
                 }
-                if (iT % 500 == 0 && iT>0) {
+                if (iT % pilihan == 0 && iT>0) {
                     writeGifs(lattice,iT);
                     pcout << "Permeability:" << std::endl << std::endl;
                     computePermeability(lattice, nu, deltaP, lattice.getBoundingBox());
