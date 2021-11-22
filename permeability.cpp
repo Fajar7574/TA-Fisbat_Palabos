@@ -149,29 +149,46 @@ void writeVTK(MultiBlockLattice3D<T,DESCRIPTOR>& lattice, plint iter)
     vtkOut.writeData<3,float>(*computeVelocity(lattice), "velocity", 1.);
 }
 
-T computePermeability(MultiBlockLattice3D<T,DESCRIPTOR>& lattice, T nu, T deltaP, Box3D domain )
+T computePermeability(MultiBlockLattice3D<T,DESCRIPTOR>& lattice, T nu, T deltaP, Box3D domain,plint satuan )
 {
     pcout << "Computing the permeability." << std::endl;
 
-    // Compute only the x-direction of the velocity (direction of the flow).
+      // Compute only the x-direction of the velocity (direction of the flow).
+
     plint xComponent = 0;
     plint nx = lattice.getNx();
-
     T meanU = computeAverage(*computeVelocityComponent(lattice, domain, xComponent));
+    T hasil ;
 
-    pcout << "Average velocity     = " << meanU                         << std::endl;
-    pcout << "Lattice viscosity nu = " << nu                            << std::endl;
-    pcout << "Grad P               = " << deltaP/(T)(nx-1)              << std::endl;
-    pcout << "Permeability         = " << nu*meanU / (deltaP/(T)(nx-1)) << std::endl;
+    if (satuan==1){
+       //hasil permeabilitas menggunakan satuan pixel^2
+       hasil = nu*meanU / (deltaP/(T)(nx-1)) ;
+       pcout << "Permeability         = " <<hasil << " iu^2" << std::endl;
+    }
+    else if(satuan==2){
+        //hasil permeabilitas menggunakan satuan m^2
+        hasil = (nu*meanU / (deltaP/(T)(nx-1)))*264.5833*264.5833*1e-6*1e-6 ;
+        pcout << "Permeability         = " << hasil << " m^2" << std::endl;
+    }
+    else if (satuan==3){
+        //hasil permeabiilitas menggunakan satuan darcy
+        hasil = (nu*meanU / (deltaP/(T)(nx-1)))*264.5833*264.5833/0.9869233;
+        pcout << "Permeability         = " << hasil << " Darcy" << std::endl;
+    }
+    else if (satuan==4){
+        //hasil permeabilitas menggunakan satuan mili darcy
+        hasil = (nu*meanU / (deltaP/(T)(nx-1)))*264.5833*264.5833*1000/0.9869233;
+        pcout << "Permeability         = " << hasil << " mili darcy" << std::endl;
 
-    return meanU;
+    }
+    return hasil;
 }
 
 int main(int argc, char **argv)
 {
     plbInit(&argc, &argv);
 
-    if (argc!=8) {
+    if (argc!=9) {
         pcout << "Error missing some input parameter\n";
         pcout << "The structure is :\n";
         pcout << "1. Input file name.\n";
@@ -183,7 +200,12 @@ int main(int argc, char **argv)
         pcout << "7. Output Perhitungan data dan file vtx .\n";
         pcout << "   > Output Di akhir saja = 0.\n";
         pcout << "   > Output Per n Iterasi > 0.\n";
-        pcout << "Example: " << argv[0] << " twoSpheres.dat tmp/ 48 64 64 0.00005 0\n";
+        pcout << "8. Satuan permeabilitas.\n";
+        pcout << "   iu^2 = 1.\n";
+        pcout << "   m^2 = 2.\n";
+        pcout << "   darcy = 3.\n";
+        pcout << "   m darcy = 4.\n";
+        pcout << "Example: " << argv[0] << " twoSpheres.dat tmp/ 48 64 64 0.00005 0 1\n";
         exit (EXIT_FAILURE);
     }
     std::string fNameIn  = argv[1];
@@ -196,11 +218,14 @@ int main(int argc, char **argv)
     //jika pilihan 0 = Prnt & Perhitungan Permeabilitas Diakhir Saja
     //jika pilihan >0 (n) = Prnt & Perhitungan Permeabilitas per n iterasi
     const plint pilihan = atoi(argv[7]);
+    const plint satuan = atoi(argv[8]);
 
     global::directories().setOutputDir(fNameOut+"/");
 
     const T omega = 1.0;
     const T nu    = ((T)1/omega- (T)0.5)/DESCRIPTOR<T>::invCs2;
+
+     //deklarasi satuan permeabilitas untuk csv
 
     pcout << "Creation of the lattice." << std::endl;
     MultiBlockLattice3D<T,DESCRIPTOR> lattice(nx,ny,nz, new BGKdynamics<T,DESCRIPTOR>(omega));
@@ -239,8 +264,8 @@ int main(int argc, char **argv)
                 }
                 if (iT % pilihan == 0 && iT>0) {
                     writeGifs(lattice,iT);
-                    pcout << "Permeability:" << std::endl << std::endl;
-                    computePermeability(lattice, nu, deltaP, lattice.getBoundingBox());
+                    pcout << std::endl << std::endl;
+                    computePermeability(lattice, nu, deltaP, lattice.getBoundingBox(),satuan);
                     pcout << std::endl;
 
                     pcout << "Writing VTK file ..." << std::endl << std::endl;
@@ -257,8 +282,8 @@ int main(int argc, char **argv)
             }
                 pcout << "End of simulation at iteration " << iT << std::endl;
 
-                pcout << "Permeability:" << std::endl << std::endl;
-                computePermeability(lattice, nu, deltaP, lattice.getBoundingBox());
+                pcout << std::endl << std::endl;
+                computePermeability(lattice, nu, deltaP, lattice.getBoundingBox(), satuan);
                 pcout << std::endl;
 
                 pcout << "Writing VTK file ..." << std::endl << std::endl;
@@ -285,8 +310,8 @@ int main(int argc, char **argv)
             }
                 pcout << "End of simulation at iteration " << iT << std::endl;
 
-                pcout << "Permeability:" << std::endl << std::endl;
-                computePermeability(lattice, nu, deltaP, lattice.getBoundingBox());
+                pcout << std::endl << std::endl;
+                computePermeability(lattice, nu, deltaP, lattice.getBoundingBox(), satuan);
                 pcout << std::endl;
 
                 pcout << "Writing VTK file ..." << std::endl << std::endl;
