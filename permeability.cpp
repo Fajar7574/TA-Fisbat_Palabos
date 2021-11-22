@@ -184,6 +184,25 @@ T computePermeability(MultiBlockLattice3D<T,DESCRIPTOR>& lattice, T nu, T deltaP
     return hasil;
 }
 
+//perhitungan Tortuositas
+T  computeTau(MultiBlockLattice3D<T,DESCRIPTOR>& lattice, T nu, T deltaP, Box3D domain)
+{
+    pcout << "Computing the permeability." << std::endl;
+    // Compute only the x-direction of the velocity (direction of the flow).
+
+    const plint nx = lattice.getNx();
+    const plint ny = lattice.getNy();
+    const plint nz = lattice.getNz();
+    plint xComponent = 0;
+    T meanU = computeAverage(*computeVelocityComponent(lattice, domain, xComponent));
+    T meanUnorm = computeAverage(*computeVelocityNorm(lattice));
+    T Tortuosity=meanUnorm/meanU;
+
+
+    pcout << "Tortuosity     = " << Tortuosity                        << std::endl;
+    return Tortuosity;
+    }
+
 int main(int argc, char **argv)
 {
     plbInit(&argc, &argv);
@@ -269,6 +288,7 @@ int main(int argc, char **argv)
                     writeGifs(lattice,iT);
                     pcout << std::endl << std::endl;
                     computePermeability(lattice, nu, deltaP, lattice.getBoundingBox(),satuan,pixel);
+                    computeTau(lattice, nu, deltaP, lattice.getBoundingBox());
                     pcout << std::endl;
 
                     pcout << "Writing VTK file ..." << std::endl << std::endl;
@@ -287,6 +307,7 @@ int main(int argc, char **argv)
 
                 pcout << std::endl << std::endl;
                 computePermeability(lattice, nu, deltaP, lattice.getBoundingBox(), satuan,pixel);
+                computeTau(lattice, nu, deltaP, lattice.getBoundingBox());
                 pcout << std::endl;
 
                 pcout << "Writing VTK file ..." << std::endl << std::endl;
@@ -315,6 +336,7 @@ int main(int argc, char **argv)
 
                 pcout << std::endl << std::endl;
                 computePermeability(lattice, nu, deltaP, lattice.getBoundingBox(), satuan,pixel);
+                computeTau(lattice, nu, deltaP, lattice.getBoundingBox());
                 pcout << std::endl;
 
                 pcout << "Writing VTK file ..." << std::endl << std::endl;
