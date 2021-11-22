@@ -30,6 +30,9 @@
 #include <vector>
 #include <cmath>
 #include <cstdlib>
+#include <string>
+#include <iostream>
+#include <fstream>
 
 using namespace plb;
 
@@ -249,7 +252,28 @@ int main(int argc, char **argv)
     const T omega = 1.0;
     const T nu    = ((T)1/omega- (T)0.5)/DESCRIPTOR<T>::invCs2;
 
-     //deklarasi satuan permeabilitas untuk csv
+    //deklarasi satuan permeabilitas untuk csv
+    std::string satuanUkur;
+    if (satuan==1){
+               satuanUkur="iu^2";
+            }
+            else if(satuan==2){
+               satuanUkur="m^2";
+            }
+            else if (satuan==3){
+                satuanUkur="Darcy";
+            }
+            else if (satuan==4){
+                satuanUkur="mili Darcy";
+            }
+    std::ofstream myFile("palabos.csv");
+    myFile<<"Nx ="<<nx<<".\n";
+    myFile<<"Ny ="<<ny<<".\n";
+    myFile<<"Nz ="<<nz<<".\n";
+    myFile<<"Resolusi ="<<pixel<<".\n";
+    myFile<<"Delta p ="<<deltaP<<".\n";
+    myFile<<".\n";
+    myFile<<"Iterasi ke,Permeabilitas ("<<satuanUkur<<") ,Tortuositas"  <<".\n";
 
     pcout << "Creation of the lattice." << std::endl;
     MultiBlockLattice3D<T,DESCRIPTOR> lattice(nx,ny,nz, new BGKdynamics<T,DESCRIPTOR>(omega));
@@ -289,12 +313,13 @@ int main(int argc, char **argv)
                 if (iT % pilihan == 0 && iT>0) {
                     writeGifs(lattice,iT);
                     pcout << std::endl << std::endl;
-                    computePermeability(lattice, nu, deltaP, lattice.getBoundingBox(),satuan,pixel);
-                    computeTau(lattice, nu, deltaP, lattice.getBoundingBox());
+                    T Permeabilitas=computePermeability(lattice, nu, deltaP, lattice.getBoundingBox(),satuan,pixel);
+                    T Tortuositas=computeTau(lattice, nu, deltaP, lattice.getBoundingBox());
                     pcout << std::endl;
 
                     pcout << "Writing VTK file ..." << std::endl << std::endl;
                     writeVTK(lattice,iT);
+                    myFile<<iT<<","<<Permeabilitas<<","<<Tortuositas<<"\n";
 
                 }
 
@@ -308,12 +333,13 @@ int main(int argc, char **argv)
                 pcout << "End of simulation at iteration " << iT << std::endl;
 
                 pcout << std::endl << std::endl;
-                computePermeability(lattice, nu, deltaP, lattice.getBoundingBox(), satuan,pixel);
-                computeTau(lattice, nu, deltaP, lattice.getBoundingBox());
+                T Permeabilitas=computePermeability(lattice, nu, deltaP, lattice.getBoundingBox(),satuan,pixel);
+                T Tortuositas=computeTau(lattice, nu, deltaP, lattice.getBoundingBox());
                 pcout << std::endl;
 
                 pcout << "Writing VTK file ..." << std::endl << std::endl;
                 writeVTK(lattice,iT);
+                myFile<<iT<<","<<Permeabilitas<<","<<Tortuositas<<"\n";
     }
     if (pilihan==0){
     //jika sama dengan ==0 output vti dan perhitungan permeabilitas dilakukan diakhir iterasi
@@ -337,12 +363,13 @@ int main(int argc, char **argv)
                 pcout << "End of simulation at iteration " << iT << std::endl;
 
                 pcout << std::endl << std::endl;
-                computePermeability(lattice, nu, deltaP, lattice.getBoundingBox(), satuan,pixel);
-                computeTau(lattice, nu, deltaP, lattice.getBoundingBox());
+                T Permeabilitas=computePermeability(lattice, nu, deltaP, lattice.getBoundingBox(),satuan,pixel);
+                T Tortuositas=computeTau(lattice, nu, deltaP, lattice.getBoundingBox());
                 pcout << std::endl;
 
                 pcout << "Writing VTK file ..." << std::endl << std::endl;
                 writeVTK(lattice,iT);
+                myFile<<iT<<","<<Permeabilitas<<","<<Tortuositas<<"\n";
     }
     pcout << "Finished!" << std::endl << std::endl;
 
