@@ -149,7 +149,7 @@ void writeVTK(MultiBlockLattice3D<T,DESCRIPTOR>& lattice, plint iter)
     vtkOut.writeData<3,float>(*computeVelocity(lattice), "velocity", 1.);
 }
 
-T computePermeability(MultiBlockLattice3D<T,DESCRIPTOR>& lattice, T nu, T deltaP, Box3D domain,plint satuan )
+T computePermeability(MultiBlockLattice3D<T,DESCRIPTOR>& lattice, T nu, T deltaP, Box3D domain,plint satuan, plint pixel )
 {
     pcout << "Computing the permeability." << std::endl;
 
@@ -167,17 +167,17 @@ T computePermeability(MultiBlockLattice3D<T,DESCRIPTOR>& lattice, T nu, T deltaP
     }
     else if(satuan==2){
         //hasil permeabilitas menggunakan satuan m^2
-        hasil = (nu*meanU / (deltaP/(T)(nx-1)))*264.5833*264.5833*1e-6*1e-6 ;
+        hasil = (nu*meanU / (deltaP/(T)(nx-1)))*pixel*pixel*1e-6*1e-6 ;
         pcout << "Permeability         = " << hasil << " m^2" << std::endl;
     }
     else if (satuan==3){
         //hasil permeabiilitas menggunakan satuan darcy
-        hasil = (nu*meanU / (deltaP/(T)(nx-1)))*264.5833*264.5833/0.9869233;
+        hasil = (nu*meanU / (deltaP/(T)(nx-1)))*pixel*pixel/0.9869233;
         pcout << "Permeability         = " << hasil << " Darcy" << std::endl;
     }
     else if (satuan==4){
         //hasil permeabilitas menggunakan satuan mili darcy
-        hasil = (nu*meanU / (deltaP/(T)(nx-1)))*264.5833*264.5833*1000/0.9869233;
+        hasil = (nu*meanU / (deltaP/(T)(nx-1)))*pixel*pixel*1000/0.9869233;
         pcout << "Permeability         = " << hasil << " mili darcy" << std::endl;
 
     }
@@ -188,7 +188,7 @@ int main(int argc, char **argv)
 {
     plbInit(&argc, &argv);
 
-    if (argc!=9) {
+    if (argc!=10) {
         pcout << "Error missing some input parameter\n";
         pcout << "The structure is :\n";
         pcout << "1. Input file name.\n";
@@ -205,7 +205,8 @@ int main(int argc, char **argv)
         pcout << "   m^2 = 2.\n";
         pcout << "   darcy = 3.\n";
         pcout << "   m darcy = 4.\n";
-        pcout << "Example: " << argv[0] << " twoSpheres.dat tmp/ 48 64 64 0.00005 0 1\n";
+        pcout << "9. Besar resolusi yang dipakai.\n";
+        pcout << "Example: " << argv[0] << " twoSpheres.dat tmp/ 48 64 64 0.00005 0 1 264.5833\n";
         exit (EXIT_FAILURE);
     }
     std::string fNameIn  = argv[1];
@@ -219,6 +220,8 @@ int main(int argc, char **argv)
     //jika pilihan >0 (n) = Prnt & Perhitungan Permeabilitas per n iterasi
     const plint pilihan = atoi(argv[7]);
     const plint satuan = atoi(argv[8]);
+    const plint pixel = atoi (argv[9]);
+
 
     global::directories().setOutputDir(fNameOut+"/");
 
@@ -265,7 +268,7 @@ int main(int argc, char **argv)
                 if (iT % pilihan == 0 && iT>0) {
                     writeGifs(lattice,iT);
                     pcout << std::endl << std::endl;
-                    computePermeability(lattice, nu, deltaP, lattice.getBoundingBox(),satuan);
+                    computePermeability(lattice, nu, deltaP, lattice.getBoundingBox(),satuan,pixel);
                     pcout << std::endl;
 
                     pcout << "Writing VTK file ..." << std::endl << std::endl;
@@ -283,7 +286,7 @@ int main(int argc, char **argv)
                 pcout << "End of simulation at iteration " << iT << std::endl;
 
                 pcout << std::endl << std::endl;
-                computePermeability(lattice, nu, deltaP, lattice.getBoundingBox(), satuan);
+                computePermeability(lattice, nu, deltaP, lattice.getBoundingBox(), satuan,pixel);
                 pcout << std::endl;
 
                 pcout << "Writing VTK file ..." << std::endl << std::endl;
@@ -311,7 +314,7 @@ int main(int argc, char **argv)
                 pcout << "End of simulation at iteration " << iT << std::endl;
 
                 pcout << std::endl << std::endl;
-                computePermeability(lattice, nu, deltaP, lattice.getBoundingBox(), satuan);
+                computePermeability(lattice, nu, deltaP, lattice.getBoundingBox(), satuan,pixel);
                 pcout << std::endl;
 
                 pcout << "Writing VTK file ..." << std::endl << std::endl;
