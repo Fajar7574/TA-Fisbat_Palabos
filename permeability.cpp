@@ -207,7 +207,7 @@ int main(int argc, char **argv)
 {
     plbInit(&argc, &argv);
 
-    if (argc!=10) {
+    if (argc!=11) {
         pcout << "Error missing some input parameter\n";
         pcout << "The structure is :\n";
         pcout << "1. Input file name.\n";
@@ -225,7 +225,8 @@ int main(int argc, char **argv)
         pcout << "   darcy = 3.\n";
         pcout << "   m darcy = 4.\n";
         pcout << "9. Besar resolusi yang dipakai.\n";
-        pcout << "Example: " << argv[0] << " twoSpheres.dat tmp/ 48 64 64 0.00005 0 1 264.5833\n";
+        pcout << "10. Jumlah iterasi maximum.\n";
+        pcout << "Example: " << argv[0] << " twoSpheres.dat tmp/ 48 64 64 0.00005 0 1 264.5833 30000\n";
         exit (EXIT_FAILURE);
     }
     std::string fNameIn  = argv[1];
@@ -240,6 +241,7 @@ int main(int argc, char **argv)
     const plint pilihan = atoi(argv[7]);
     const plint satuan = atoi(argv[8]);
     const plint pixel = atoi (argv[9]);
+    const plint maxT = atoi(argv[10]);
 
 
     global::directories().setOutputDir(fNameOut+"/");
@@ -279,7 +281,7 @@ int main(int argc, char **argv)
 
     if (pilihan>0){
     //jika sama dengan >0 output vti dan perhitungan permeabilitas dilakukan setiap 5000 iterasi
-    const plint maxT = 30000;
+    const plint maxIterasi = maxT;
             for (;iT<maxT; ++iT) {
                 if (iT % 20 == 0) {
                     pcout << "Iteration " << iT << std::endl;
@@ -315,7 +317,7 @@ int main(int argc, char **argv)
     }
     if (pilihan==0){
     //jika sama dengan ==0 output vti dan perhitungan permeabilitas dilakukan diakhir iterasi
-    const plint maxT = 30000;
+    const plint MaxIterasi = maxT;
             for (;iT<maxT; ++iT) {
                 if (iT % 20 == 0) {
                     pcout << "Iteration " << iT << std::endl;
